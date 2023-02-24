@@ -1,4 +1,4 @@
-name = "db8bot-scihub-api"
+name = "db8bot-book-request-api"
 main = "src/index.ts"
-compatibility_date = "2022-06-07"
+compatibility_date = "2023-02-23"
 node_compat = true

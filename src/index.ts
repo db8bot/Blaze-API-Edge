@@ -1,8 +1,7 @@
 /* 
 CLOUDFLARE WORKERS
 
-db8bot (https://github.com/AirFusion45/db8bot) service API for /get series commands. 
-Processing JSTOR links directed to sci-hub (mirror), journal metadata & library genesis requests
+db8bot (https://github.com/AirFusion45/db8bot) service API for /getbook series commands. 
 Copyright (c) Jim Fang, db8bot
 MIT license
 Part of the db8bot application
@@ -16,7 +15,7 @@ import qs from 'qs'
 import cheerio from 'cheerio'
 
 const app = new Hono()
-app.get('/', (c) => c.text('db8bot API for sci-hub JSTOR links, journal metadata & library genesis.'))
+app.get('/', (c) => c.text('db8bot API for book requests.'))
 app.use('*', prettyJSON())
 app.notFound((c) => c.json({ message: 'Not Found', ok: false }, 404))
 
