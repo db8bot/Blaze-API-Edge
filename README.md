@@ -1,4 +1,4 @@
-# db8bot-book-request-api
+# Blaze API Edge
 
 <img src="./CF-WorkersLogo.webp" alt= "Powered by Cloudflare Workers" width="425.3">
 
