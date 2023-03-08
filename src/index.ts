@@ -19,6 +19,7 @@ app.get('/', (c) => c.text('db8bot API for book requests.'))
 app.use('*', prettyJSON())
 app.notFound((c) => c.json({ message: 'Not Found', ok: false }, 404))
 
+const VERSION = '2023-03-07'
 
 // /paper JSTOR only - normal scihub will be routed to app engine
 app.post('/paper', async (c) => {
@@ -176,5 +177,16 @@ app.post('/book', async (c) => {
   }
 })
 
+app.get('/heartbeat', async (c) => {
+
+
+  let returnData = {
+    status: true,
+    version: VERSION
+  }
+
+  return (c.json(returnData))
+
+})
 
 export default app
