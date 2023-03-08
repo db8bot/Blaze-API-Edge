@@ -92,7 +92,7 @@ app.post('/paper', async (c) => {
 app.post('/book', async (c) => {
   let parsed = qs.parse(await c.req.text())
 
-  async function getIPFSPortal(libgenLolLink: string) {
+  async function getIPFSPortal(libgenLolLink: string, nonfiction: boolean) {
 
     const IPFSResponse = await fetch(libgenLolLink, {
       method: 'GET'
@@ -100,10 +100,21 @@ app.post('/book', async (c) => {
     const IPFSResults = await IPFSResponse.text()
 
     var $ = cheerio.load(IPFSResults)
+    // handle metadata
+    if (nonfiction) {
+      var librarylolMeta = {
+        title: $($('#info').children()[1]).text().replace(/\t/g, '').trim(),
+        isbns: $($('#info').children()[6]).text().replace('ISBN: ', '').replace(/\t/g, '').trim()
+      }
+    }
+
+    // get link + meta + return
     if (IPFSResults.includes('Download from an IPFS distributed storage, choose any gateway:')) { // there are ipfs buttons
-      return ($($($($('#download').children('ul')[0]).children('li')[0]).children('a')[0]).attr('href'))
+      if (nonfiction) return ([$($($($('#download').children('ul')[0]).children('li')[0]).children('a')[0]).attr('href'), librarylolMeta])
+      else return ($($($($('#download').children('ul')[0]).children('li')[0]).children('a')[0]).attr('href'))
     } else { // fall back on the slower get link
-      return ($($('#download').children('h2').children('a')[0]).attr('href'))
+      if (nonfiction) return ([$($('#download').children('h2').children('a')[0]).attr('href'), librarylolMeta])
+      else return ($($('#download').children('h2').children('a')[0]).attr('href'))
     }
   }
 
@@ -122,7 +133,7 @@ app.post('/book', async (c) => {
       if (libgenLolLink === undefined) {
         return (c.json({ message: 'Not Found', ok: false }, 404))
       }
-      let ipfsPortalLink = await getIPFSPortal(libgenLolLink)
+      let ipfsPortalLink = await getIPFSPortal(libgenLolLink, false)
       let titleBeforeISBNFilter = $($($('.catalog tbody').children('tr')[0]).children('td')[2]).text()
 
       let meta = {
@@ -146,28 +157,17 @@ app.post('/book', async (c) => {
       if (libgenLolLink === undefined) {
         return (c.json({ message: 'Not Found', ok: false }, 404))
       }
-      let ipfsPortalLink = await getIPFSPortal(libgenLolLink)
+      let ipfsPortalProbe = await getIPFSPortal(libgenLolLink, true)
+      let ipfsPortalLink = ipfsPortalProbe[0]
+      let ipfsPortalMeta = ipfsPortalProbe[1]
       var meta = {
         libgenID: $($($($('table').children()[2]).children('tr')[1]).children('td')[0]).text().replace(/\t/g, '').trim(),
         author: $($($($('table').children()[2]).children('tr')[1]).children('td')[1]).text().replace(/\t/g, '').trim(),
-        title: $($($($($('table').children()[2]).children('tr')[1]).children('td')[2]).children('a')[0]).text(),
-        isbn: null,
+        title: ipfsPortalMeta.title || 'No Title',
+        isbn: ipfsPortalMeta.isbns || 'No ISBN',
         publisher: $($($($('table').children()[2]).children('tr')[1]).children('td')[3]).text().replace(/\t/g, '').trim(),
         year: $($($($('table').children()[2]).children('tr')[1]).children('td')[4]).text().replace(/\t/g, '').trim()
       }
-
-      // isbn seperation & processing
-      let titleSplit = meta.title.split(' ')
-      let isbns = []
-      for (var element of titleSplit) {
-        element = element.replace(/\b[-.,()&$#!\[\]{}"']+\B|\B[-.,()&$#!\[\]{}"']+\b/g, '')
-        if (element.match(/^(?:ISBN(?:-13)?:?\ )?(?=[0-9]{13}$|(?=(?:[0-9]+[-\ ]){4})[-\ 0-9]{17}$)97[89][-\ ]?[0-9]{1,5}[-\ ]?[0-9]+[-\ ]?[0-9]+[-\ ]?[0-9]$/) || element.match(/^(?:ISBN(?:-10)?:?●)?(?=[0-9X]{10}$|(?=(?:[0-9]+[-●]){3})[-●0-9X]{13}$)[0-9]{1,5}[-●]?[0-9]+[-●]?[0-9]+[-●]?[0-9X]$/)) { // first regex = isbn 13, second regex = isbn 10
-          isbns.push(element)
-          meta.title = meta.title.replace(element, '')
-        }
-      }
-      meta.isbn = isbns.join(', ')
-      meta.title = meta.title.replace(/,\s*$/g, '').trim()
 
       return (c.json([ipfsPortalLink, `https://libgen.is/search.php?req=${encodeURIComponent(parsed.query)}&lg_topic=libgen&open=0&view=simple&res=25&phrase=1&column=def`, meta], 200))
     } catch (err) {
@@ -175,8 +175,6 @@ app.post('/book', async (c) => {
     }
   }
 })
-
-
 
 
 export default app
