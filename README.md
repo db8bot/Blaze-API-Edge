@@ -1,8 +1,9 @@
 # Blaze API Edge
+## The Service API for db8bot handling non-fiction & fiction book access requests.
 
 <img src="./CF-WorkersLogo.webp" alt= "Powered by Cloudflare Workers" width="425.3">
 
-## The Service API for db8bot handling non-fiction & fiction book access requests.
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdb8bot%2FBlaze-API-Edge.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdb8bot%2FBlaze-API-Edge?ref=badge_large)
 
 ## Build from Source
 The project is built on Cloudflare Workers. There are no specific environment variables or configurations required. Simply deploy like any Cloudflare Workers project. For detailed deployment instructions see [here](https://developers.cloudflare.com/workers/get-started/guide/). 
